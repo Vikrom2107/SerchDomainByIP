@@ -1,0 +1,14 @@
+51.38.24.17 : PNsense self-signed web certificate
+51.38.24.32 : *.linksnappy.com
+51.38.24.33 : *.linksnappy.com
+51.38.24.34 : *.linksnappy.com
+51.38.24.35 : *.linksnappy.com
+51.38.24.90 : web2.jarvit.it
+51.38.24.99 : Unknown
+51.38.24.128 : creative.csclouddrive.com
+51.38.24.129 : nethergate.csclouddrive.com
+51.38.24.133 : office2.csclouddrive.com
+51.38.24.140 : contact.mixdata.fr
+51.38.24.141 : contact.mixdata.fr
+51.38.24.142 : contact.mixdata.fr
+51.38.24.143 : contact.mixdata.fr

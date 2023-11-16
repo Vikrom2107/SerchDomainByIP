@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Сканирование IP</title>
+</head>
+<body>
+    <h2>Программа для сканирования IP-диапазона</h2>
+    <form method="post" action="/send-ip">
+        IP адрес с длиной маски подсети
+        <input type="text" name="mask" placeholder="Например 58.58.58.0/24" class="form-control">
+        Количество потоков
+        <input type="number" name="thread_count" placeholder="Введите целое число" class="form-control">
+        <br>
+        <button onclick="fu()" type="text">Отправить</button>
+    </form>
+    <br>
+
+    <p class="par"></p>
+    <script>
+        function fu(){
+            var par = document.querySelector('.par');
+            par.innerHTML = 'Запрос отправлен';
+        }
+    </script>
+</body>
+</html>
