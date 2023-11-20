@@ -52,6 +52,7 @@ public class CheckConnection {
 
             } catch (ConnectException ex) {
                 System.out.println(ipAddress + " Ошибка SSL соединения");
+                domain = "Ошибка SSL соединения";
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {

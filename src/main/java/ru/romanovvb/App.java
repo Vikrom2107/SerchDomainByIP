@@ -14,6 +14,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class App {
 
+    private static final int MAX_NET_MASK = 32;
     private static final int PORT = 7070;
     private static final String PATH = "/public/";
     private static File allResults = new File("./src/main/resources/public/download/allResults.txt");
@@ -34,8 +35,9 @@ public class App {
         javalin.post("/send-ip", ctx -> {
             ipMask = ctx.formParam("mask");
             threads = Integer.parseInt(Objects.requireNonNull(ctx.formParam("thread_count")));
+            threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threads);
             System.out.println("Запрос: " + ipMask + " ; " + threads + " принят");
-            searchDomains();
+            checkIpAddresses(ipMask);
 
             Thread.sleep(1000);
             ctx.redirect("/result");
@@ -86,27 +88,89 @@ public class App {
 
         return templateEngine;
     }
-    private static void searchDomains() {
-        String[] splitMask = ipMask.split("/");
-        String ipAdress = splitMask[0];
-        int mask = Integer.parseInt(Objects.requireNonNull(splitMask[1]));
-        threadPoolExecutor =(ThreadPoolExecutor) Executors.newFixedThreadPool(threads);
-        String ip3 = ipAdress.substring(0, ipAdress.length()-1);
+    private static void checkConnectionIp(String ip) {
 
-        for (int i = 0; i < 256; i++) {
-            int finalI = i;
-            threadPoolExecutor.submit(() -> {
-                String anotherIpAddress = ip3 + finalI;
-                String domain;
-                try {
-                    domain = CheckConnection.findDomain(anotherIpAddress);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+        threadPoolExecutor.submit(() -> {
+            String domain = "-";
+            try {
+
+                domain = CheckConnection.findDomain(ip);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            finally {
+                allResMap.getIpAndDomain().put(ip, domain);
+            }
+            if (!domain.equals("-"))
+                onlyWithDomainsMap.getIpAndDomain().put(ip, domain);
+
+
+        });
+    }
+    private static void checkIpAddresses(String ipMask) {
+        String[] splitipMask = ipMask.split("/");
+        String requestIp = splitipMask[0];
+        int prefixMask = Integer.parseInt(Objects.requireNonNull(splitipMask[1]));
+
+        if (prefixMask >=0 && prefixMask <= 32) {
+
+            int difMasks = MAX_NET_MASK - prefixMask;
+            String[] splitIp = requestIp.split("\\.");
+            int secOne = Integer.parseInt(splitIp[0]);
+            int secTwo = Integer.parseInt(splitIp[1]);
+            int secThree = Integer.parseInt(splitIp[2]);
+            int secFour = Integer.parseInt(splitIp[3]);
+
+            int countSecOne = (int) Math.pow(2, 8);
+            int countSecTwo = (int) Math.pow(2, 8);
+            int countSecThree = (int) Math.pow(2, 8);
+            int countSecFour = (int) Math.pow(2, 8);
+
+            String resultIp = "";
+            if (difMasks < 8) {
+                countSecFour = (int) Math.pow(2, difMasks);
+            }
+            for (int i = 0; i < countSecFour; i++) {
+                if (difMasks > 0)
+                    secFour = i;
+
+                if (difMasks > 8) {
+                    if (difMasks-8 < 8)
+                        countSecThree = (int) Math.pow(2, difMasks-8);
+
+                    for (int j = 0; j < countSecThree; j++) {
+                        secThree = j;
+                        if (difMasks > 16) {
+                            if (difMasks-16 < 8)
+                                countSecTwo = (int) Math.pow(2, difMasks-16);
+
+                            for (int k = 0; k < countSecTwo; k++) {
+                                secTwo = k;
+                                if (difMasks > 24) {
+                                    if (difMasks - 24 < 8)
+                                        countSecOne = (int) Math.pow(2, difMasks - 24);
+                                    for(int l = 0; l < countSecOne; l++) {
+                                        secOne = l;
+                                        resultIp = secOne + "." + secTwo + "." + secThree + "." + secFour;
+                                        checkConnectionIp(resultIp);
+                                    }
+                                } else {
+                                    resultIp = secOne + "." + secTwo + "." + secThree + "." + secFour;
+                                    checkConnectionIp(resultIp);
+                                }
+                            }
+                        } else {
+                            resultIp = secOne + "." + secTwo + "." + secThree + "." + secFour;
+                            checkConnectionIp(resultIp);
+                        }
+                    }
+                } else {
+                    resultIp = secOne + "." + secTwo + "." + secThree + "." + secFour;
+                    checkConnectionIp(resultIp);
                 }
-                if (!domain.equals("-"))
-                    onlyWithDomainsMap.getIpAndDomain().put(anotherIpAddress, domain);
-                allResMap.getIpAndDomain().put(anotherIpAddress, domain);
-            });
+            }
+        } else {
+            System.out.println("Неверное значение префикса маски подсети");
         }
     }
 }
