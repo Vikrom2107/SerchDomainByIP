@@ -18,6 +18,7 @@ public class FindDomains {
     private final IpAndDomainMap allResMap;
     private final IpAndDomainMap onlyWithDomainsMap;
     private final ThreadPoolExecutor threadPoolExecutor;
+    private double percent = 0;
 
     public FindDomains(int threads) {
         threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threads);
@@ -31,70 +32,75 @@ public class FindDomains {
         String requestIp = splitIpMask[0];
         int prefixMask = Integer.parseInt(Objects.requireNonNull(splitIpMask[1]));
 
-        if (prefixMask >=0 && prefixMask <= 32) {
+        if (prefixMask < 0 || prefixMask > 32) {
+            System.out.println("Невереная длина маски подсети ");
+            return;
+        }
 
-            int difMasks = MAX_NET_MASK - prefixMask;
-            String[] splitIp = requestIp.split("\\.");
-            int secOne = Integer.parseInt(splitIp[0]);
-            int secTwo = Integer.parseInt(splitIp[1]);
-            int secThree = Integer.parseInt(splitIp[2]);
-            int secFour = Integer.parseInt(splitIp[3]);
+        int difMasks = MAX_NET_MASK - prefixMask;
+        String[] splitIp = requestIp.split("\\.");
+        int secOne = Integer.parseInt(splitIp[0]);
+        int secTwo = Integer.parseInt(splitIp[1]);
+        int secThree = Integer.parseInt(splitIp[2]);
+        int secFour = Integer.parseInt(splitIp[3]);
 
-            int countSecOne = (int) Math.pow(2, 8);
-            int countSecTwo = (int) Math.pow(2, 8);
-            int countSecThree = (int) Math.pow(2, 8);
-            int countSecFour = (int) Math.pow(2, 8);
+        int countSecOne = (int) Math.pow(2, 8);
+        int countSecTwo = (int) Math.pow(2, 8);
+        int countSecThree = (int) Math.pow(2, 8);
+        int countSecFour = (int) Math.pow(2, 8);
 
-            String resultIp = "";
-            if (difMasks < 8) {
-                countSecFour = (int) Math.pow(2, difMasks);
-            }
-            for (int i = 0; i < countSecFour; i++) {
-                if (difMasks > 0)
-                    secFour = i;
+        String resultIp = "";
+        if (difMasks < 8) {
+            countSecFour = (int) Math.pow(2, difMasks);
+        }
+        for (int i = 0; i < countSecFour; i++) {
+            if (difMasks > 0)
+                secFour = i;
 
-                if (difMasks > 8) {
-                    if (difMasks-8 < 8)
-                        countSecThree = (int) Math.pow(2, difMasks-8);
+            if (difMasks > 8) {
+                if (difMasks-8 < 8)
+                    countSecThree = (int) Math.pow(2, difMasks-8);
 
-                    for (int j = 0; j < countSecThree; j++) {
-                        secThree = j;
-                        if (difMasks > 16) {
-                            if (difMasks-16 < 8)
-                                countSecTwo = (int) Math.pow(2, difMasks-16);
+                for (int j = 0; j < countSecThree; j++) {
+                    secThree = j;
+                    if (difMasks > 16) {
+                        if (difMasks-16 < 8)
+                            countSecTwo = (int) Math.pow(2, difMasks-16);
 
-                            for (int k = 0; k < countSecTwo; k++) {
-                                secTwo = k;
-                                if (difMasks > 24) {
-                                    if (difMasks - 24 < 8)
-                                        countSecOne = (int) Math.pow(2, difMasks - 24);
-                                    for(int l = 0; l < countSecOne; l++) {
-                                        secOne = l;
-                                        resultIp = secOne + "." + secTwo + "." + secThree + "." + secFour;
-                                        checkConnection(resultIp);
-                                    }
-                                } else {
+                        for (int k = 0; k < countSecTwo; k++) {
+                            secTwo = k;
+                            if (difMasks > 24) {
+                                if (difMasks - 24 < 8)
+                                    countSecOne = (int) Math.pow(2, difMasks - 24);
+                                for(int l = 0; l < countSecOne; l++) {
+                                    secOne = l;
                                     resultIp = secOne + "." + secTwo + "." + secThree + "." + secFour;
                                     checkConnection(resultIp);
                                 }
+                            } else {
+                                resultIp = secOne + "." + secTwo + "." + secThree + "." + secFour;
+                                checkConnection(resultIp);
                             }
-                        } else {
-                            resultIp = secOne + "." + secTwo + "." + secThree + "." + secFour;
-                            checkConnection(resultIp);
                         }
+                    } else {
+                        resultIp = secOne + "." + secTwo + "." + secThree + "." + secFour;
+                        checkConnection(resultIp);
                     }
-                } else {
-                    resultIp = secOne + "." + secTwo + "." + secThree + "." + secFour;
-                    checkConnection(resultIp);
                 }
+            } else {
+                resultIp = secOne + "." + secTwo + "." + secThree + "." + secFour;
+                checkConnection(resultIp);
             }
-        } else {
-            System.out.println("Неверное значение префикса маски подсети");
+            percent += 1.0/countSecFour;
         }
+
     }
+
+
+
     // Отправляет задачу в общий пул потоков
     private void checkConnection(String ip) {
-
+        System.out.println("Началась проверка ip: " + ip);
         threadPoolExecutor.submit(() -> {
             String domain = "-";
             try {
@@ -174,5 +180,9 @@ public class FindDomains {
 
     public ThreadPoolExecutor getThreadPoolExecutor() {
         return threadPoolExecutor;
+    }
+
+    public double getPercent() {
+        return percent;
     }
 }

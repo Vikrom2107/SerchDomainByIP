@@ -1,0 +1,56 @@
+* {
+    margin: 10;
+    box-sizing: border-box;
+}
+section {
+    width: 600px;
+    margin: auto;
+}
+h2 {
+    text-align: center
+}
+p {
+    font-size: 18px;
+}
+
+input {
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 30px;
+    letter-spacing: 0em;
+    text-align: left;
+    border: 2;
+    border-radius: 10px;
+    padding: 11px 24px;
+    margin-bottom: 8px;
+}
+button {
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5); /* Тень под кнопкой */
+    position: relative; /* Относительное позиционирование */
+    top: 0; left: 0; /* Исходное положение */
+}
+button:active {
+    box-shadow: none; /* Убираем тень */
+    top: 3px; left: 3px; /* Смещаем кнопку вниз и вправо */
+   }
+button:hover {
+    background-color: #f89d13; /* Цвет фона при наведении */
+}
+.form-button {
+    border: 0;
+    border-radius: 10px;
+    background-color: #40E0D0;
+    color: black;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 30px;
+    letter-spacing: 0em;
+    text-align: left;
+    padding: 11px 54px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+img.animated-gif{
+  width: 100px;
+  height: auto;
+}
